@@ -3,14 +3,30 @@ import random
 from data import *
 
 def random_fill():
-    current  = [[0 for _ in range(9)] for _ in range(9)]
+    current = []
+
     for i in range(9):
-       for j in range(9):
-            if initial[i][j] == 0:
-                  current[i][j] = int(random.random() * 9) + 1
+        
+      line = initial[i]
+      missing = []
+
+      for n in range(1,10):
+           if n not in line:
+                missing.append(n)
+
+                
+      random.shuffle(missing)
+
+      new_line = []
+      for value in line:
+            if value == 0:
+                new_line.append(missing.pop())
             else:
-                 current[i][j] = initial[i][j]
-                  
+                new_line.append(value)
+
+      current.append(new_line)
+
+
     print(current)
     return current
 
@@ -19,9 +35,6 @@ def climbing_hill(puzzle):
     initial = puzzle
     current  = [[0 for _ in range(9)] for _ in range(9)]
     
-    #for i in range(9):
-        #for j in range(9):
-            #current[i][j] = puzzle[i][j]
 
     isEnding = False
     iteration = 0
@@ -30,7 +43,6 @@ def climbing_hill(puzzle):
 
     plain = 0
 
-    #row = [1,2,3,4,5,6,7,8,9]
 
     #remplir aleatoirement
     current = random_fill()
@@ -42,9 +54,12 @@ def climbing_hill(puzzle):
           if(pastErrors == errors):
                 plain += 1
 
+          else:
+                plain = 0
+
           pastErrors = errors
 
-          if(plain >= 100):
+          if(plain >= 1000):
                current = random_fill()
                print("plain")
                plain = 0
@@ -69,10 +84,6 @@ def climb(passedPuzzle):
                   stepState[i][j] = passedPuzzle[i][j]
 
 
-      #temp = stepState[randowRow][randomCol1]
-      #stepState[randowRow][randomCol1] = stepState[randowRow][randomCol2]
-      #stepState[randowRow][randomCol2] = temp
-
       #swap
 
       stepState[randowRow][randomCol1], stepState[randowRow][randomCol2] = stepState[randowRow][randomCol2], stepState[randowRow][randomCol1]
@@ -96,17 +107,9 @@ def climb(passedPuzzle):
 
 
 def find_duplicates(section):
-    seen = set()
-    duplicates = set()
+    
 
-    for number in section:
-        
-        if number in seen:
-            duplicates.add(number)
-        else:
-            seen.add(number)
-
-    return len(list(duplicates))
+    return 9 - len(set(section))
       
 
 def errors_counter(sudoku):
@@ -119,12 +122,12 @@ def errors_counter(sudoku):
                 for j in range(9):
                         if (sudoku[i][j] == 0):
                               print("zero")
-                        if (sudoku[i][j] != initial[i][j]):
+                        if (sudoku[i][j] != initial[i][j] and initial[i][j] != 0):
                               errorsNumber +=1
 
                         sectionRow[j].append(sudoku[i][j])
 
-                        section3x3[i % 3 + int(j / 3)].append(sudoku[i][j])
+                        section3x3[(i // 3) * 3 + j // 3].append(sudoku[i][j])
 
       for i in range(9):
             errorsNumber += find_duplicates(sectionRow[i])
