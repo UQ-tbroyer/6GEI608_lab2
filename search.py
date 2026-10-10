@@ -35,74 +35,80 @@ def climbing_hill(puzzle):
     initial = puzzle
     current  = [[0 for _ in range(9)] for _ in range(9)]
     
-
     isEnding = False
     iteration = 0
+    temperature = 0.5
+    temperatureZero = 0.2 
+    cooling = 0.99999998
 
-    pastErrors = -1
-
-    plain = 0
-
+    errors = 1_000_000 #close to infinity
+    best = errors
 
     #remplir aleatoirement
     current = random_fill()
 
-    while(not isEnding):
-          solution, isEnding, errors = climb(current)
+    while(not isEnding and temperature > temperatureZero):
+          solution, isEnding, errors = climb(current, temperature)
           current = solution
 
-          if(pastErrors == errors):
-                plain += 1
+          temperature *= cooling
 
-          else:
-                plain = 0
-
-          pastErrors = errors
-
-          if(plain >= 1000):
-               current = random_fill()
-               print("plain")
-               plain = 0
+          if errors < best:
+             best = errors
+             
+      
 
           iteration += 1
           print(iteration)
 
 
-    print(current)
+    #print(current)
     return solution
 
 
-def climb(passedPuzzle):
+def climb(passedPuzzle, temperature):
       
       randowRow = int(random.random() * 9)
       randomCol1 = int(random.random() * 9)
       randomCol2 = int(random.random() * 9)
       stepState  = [[0 for _ in range(9)] for _ in range(9)]
 
+      free = []
+
       for i in range(9):
             for j in range(9):
                   stepState[i][j] = passedPuzzle[i][j]
 
+                  if initial[i][j] == 0:
+                        free.append((i,j))
+
+
+      #not initial puzzle
+
+      while((randowRow, randomCol1) not in free or (randowRow, randomCol2) not in free):
+            randowRow = int(random.random() * 9)
+            randomCol1 = int(random.random() * 9)
+            randomCol2 = int(random.random() * 9)
 
       #swap
-
       stepState[randowRow][randomCol1], stepState[randowRow][randomCol2] = stepState[randowRow][randomCol2], stepState[randowRow][randomCol1]
       
       currentErrors = errors_counter(passedPuzzle)
       stepErrors = errors_counter(stepState)
 
-      if (currentErrors <= stepErrors):
+      delta =  currentErrors - stepErrors
 
-            print(currentErrors )
-            return passedPuzzle, False, currentErrors
-
-      elif (stepErrors == 0):
+      if (stepErrors == 0):
             print(stepErrors)
             return stepState, True, stepErrors
 
-      else:
-            print(stepErrors)
+      elif delta > 0 or random.random() < math.exp(delta / temperature):
+            print("errors " + str(stepErrors))
             return stepState, False, stepErrors
+
+      else:
+            print("errors " + str(currentErrors))
+            return passedPuzzle, False, currentErrors
 
 
 

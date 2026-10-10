@@ -21,7 +21,7 @@ def extract_puzzle(dataframe):
     for i in range(9):
         puzzle_processed.append([])
         for j in range(9):
-            symbol = puzzle_raw[(i+1)*(j+1) - 1]
+            symbol = puzzle_raw[i * 9 + j]
             #print(symbol)
             #print(type(symbol))
 
