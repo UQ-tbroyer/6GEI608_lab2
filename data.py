@@ -22,8 +22,8 @@ def extract_puzzle(dataframe):
         puzzle_processed.append([])
         for j in range(9):
             symbol = puzzle_raw[(i+1)*(j+1) - 1]
-            print(symbol)
-            print(type(symbol))
+            #print(symbol)
+            #print(type(symbol))
 
             if symbol != '.':
                 puzzle_processed[i].append(int(symbol))
