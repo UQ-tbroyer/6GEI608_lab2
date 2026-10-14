@@ -4,15 +4,24 @@ import pandas as pd
 
 def extract_csv(outpufile="sudoku/exemple.csv"):
 
-    df = pd.read_csv(outpufile)
+    # index_col=False : évite que pandas prenne la 1re colonne comme index
+    # quand les lignes se terminent par une virgule (export qqwing)
+    df = pd.read_csv(outpufile, index_col=False)
 
-    print(df.to_string()) 
+    print(df.to_string())
 
     return df
 
 
-def extract_puzzle(dataframe):
-    puzzle_raw = dataframe["Puzzle"][0]
+def extract_puzzle(dataframe, index=0):
+    """Retourne le puzzle de la ligne `index` du fichier (0 = premier puzzle)."""
+    if dataframe.empty:
+        raise ValueError("le fichier ne contient aucune ligne de puzzle")
+
+    puzzle_raw = str(dataframe["Puzzle"].iloc[index]).strip()
+
+    if len(puzzle_raw) != 81:
+        raise ValueError(f"le puzzle doit contenir 81 caractères, il en contient {len(puzzle_raw)}")
 
     #print(puzzle_raw)
 
