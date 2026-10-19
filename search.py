@@ -1,6 +1,10 @@
 import math
 import random
+import time
 from data import *
+
+#1147688
+MAX_RESTARTS=1_000_000
 
 def random_fill():
     current = []
@@ -27,94 +31,92 @@ def random_fill():
       current.append(new_line)
 
 
-    print(current)
+    #print(current)
     return current
 
 def climbing_hill(puzzle):
-    global initial
-    initial = puzzle
-    current  = [[0 for _ in range(9)] for _ in range(9)]
-    
-    isEnding = False
-    iteration = 0
-    temperature = 0.5
-    temperatureZero = 0.2 
-    cooling = 0.99999998
 
-    errors = 1_000_000 #close to infinity
-    best = errors
+    best = None
+    leastErrors = 1_000_000
 
-    #remplir aleatoirement
-    current = random_fill()
+    for i in range(MAX_RESTARTS):  
+      global initial
+      initial = puzzle
 
-    while(not isEnding and temperature > temperatureZero):
-          solution, isEnding, errors = climb(current, temperature)
-          current = solution
-
-          temperature *= cooling
-
-          if errors < best:
-             best = errors
-             
+      isEnding = False
       
+      #remplir aleatoirement
+      current = random_fill()
 
-          iteration += 1
-          print(iteration)
+      currentErrors = errors_counter(current)
+
+      while not isEnding: 
+            neighbor, errors = climb(current)
+
+            if neighbor is None or errors >= currentErrors:
+                 isEnding = True
+            
+            else:    
+                  current = neighbor
+                  currentErrors = errors
+
+      if leastErrors > currentErrors:
+            best = current
+            leastErrors = currentErrors
+
+      if leastErrors == 0:
+            #break
+            return best
+
+      if i % 100 == 0:     
+            print("nb climb: "+str(i))
+            print("leastError: " + str(leastErrors))
+
+    return best
 
 
-    #print(current)
-    return solution
 
+def climb(passedPuzzle):
 
-def climb(passedPuzzle, temperature):
-      
-      randowRow = int(random.random() * 9)
-      randomCol1 = int(random.random() * 9)
-      randomCol2 = int(random.random() * 9)
-      stepState  = [[0 for _ in range(9)] for _ in range(9)]
-
-      free = []
+      leastErrors = 1_000_000
+      bestState  = [[0 for _ in range(9)] for _ in range(9)]
+      errors = errors_counter(passedPuzzle)
 
       for i in range(9):
+            #column a remplir
+            free = [] 
+
             for j in range(9):
-                  stepState[i][j] = passedPuzzle[i][j]
+            
 
                   if initial[i][j] == 0:
-                        free.append((i,j))
+                        free.append(j)
 
 
-      #not initial puzzle
+            tailleFree = len(free)
 
-      while((randowRow, randomCol1) not in free or (randowRow, randomCol2) not in free):
-            randowRow = int(random.random() * 9)
-            randomCol1 = int(random.random() * 9)
-            randomCol2 = int(random.random() * 9)
+            for j in range(tailleFree):
+                  for k in range(j+1, tailleFree):
+                        col1, col2 = free[j], free[k] 
 
-      #swap
-      stepState[randowRow][randomCol1], stepState[randowRow][randomCol2] = stepState[randowRow][randomCol2], stepState[randowRow][randomCol1]
+                        #swap
+                        passedPuzzle[i][col1], passedPuzzle[i][col2] = passedPuzzle[i][col2], passedPuzzle[i][col1]
+
+                        errors = errors_counter(passedPuzzle)
+
+                        if errors < leastErrors:
+                              leastErrors = errors
+                              bestState = [[passedPuzzle[a][b] for b in range(9)] for a in range(9)]
+
+                        #reinitialise
+                        passedPuzzle[i][col1], passedPuzzle[i][col2] = passedPuzzle[i][col2], passedPuzzle[i][col1]      
       
-      currentErrors = errors_counter(passedPuzzle)
-      stepErrors = errors_counter(stepState)
 
-      delta =  currentErrors - stepErrors
-
-      if (stepErrors == 0):
-            print(stepErrors)
-            return stepState, True, stepErrors
-
-      elif delta > 0 or random.random() < math.exp(delta / temperature):
-            print("errors " + str(stepErrors))
-            return stepState, False, stepErrors
-
-      else:
-            print("errors " + str(currentErrors))
-            return passedPuzzle, False, currentErrors
-
-
+      #print("errors " + str(leastErrors))
+      return bestState, leastErrors
 
 def find_duplicates(section):
     
-
     return 9 - len(set(section))
       
 
@@ -163,7 +165,12 @@ def verify(sudoku):
 
 
 if __name__ == "__main__":
-      df = extract_csv()
+      start = time.time_ns()
+      df = extract_csv("sudoku/exemple_simple.csv")
       pp = extract_puzzle(df)
-
+      
       print(climbing_hill(pp))
+      print("----------------------")
+      print(pp)
+      end = time.time_ns() - start
+      print(end / 1_000_000_000)
