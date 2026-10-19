@@ -5,7 +5,7 @@ from multiprocessing import Pool, cpu_count
 from data import *
 
 #1147688
-MAX_RESTARTS=1_000_000
+MAX_RESTARTS=10_000_000
 
 def random_fill():
     current = []
@@ -89,8 +89,6 @@ def climbing_hill(puzzle, isParallel=True):
                             done = i + 1
                             elapsed = now - startTime
                             print(f"[{elapsed:6.0f}s] {done}/{MAX_RESTARTS} restarts done "
-                                  f"({100 * done / MAX_RESTARTS:.2f}%) | "
-                                  f"{done / elapsed:.1f} restarts/s on {nbWorkers} processes | "
                                   f"leastError: {leastErrors}")
                             lastPrint = now
  
