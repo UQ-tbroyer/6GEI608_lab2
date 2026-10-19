@@ -1,6 +1,7 @@
 import math
 import random
 import time
+from multiprocessing import Pool, cpu_count
 from data import *
 
 #1147688
@@ -34,12 +35,107 @@ def random_fill():
     #print(current)
     return current
 
-def climbing_hill(puzzle):
+
+def init_worker(puzzle):        
+      global initial
+      initial = puzzle
+      random.seed()
+
+
+
+def one_restart(_):              
+      current = random_fill()
+      currentErrors = errors_counter(current)
+      isEnding = False
+      while not isEnding:
+            neighbor, errors = climb(current)
+            if neighbor is None or errors >= currentErrors:
+                  isEnding = True
+            else:
+                  current = neighbor
+                  currentErrors = errors
+      return current, currentErrors
+
+
+
+def climbing_hill(puzzle, isParallel=True):
 
     best = None
     leastErrors = 1_000_000
 
-    for i in range(MAX_RESTARTS):  
+    MAX_THREAD = 100
+
+
+    
+    if (isParallel):
+          nbWorkers = cpu_count()
+          PRINT_EVERY = 60                 
+          startTime = time.time()
+          lastPrint = startTime
+ 
+          with Pool(nbWorkers, initializer=init_worker, initargs=(puzzle,)) as pool:
+                results = pool.imap_unordered(one_restart, range(MAX_RESTARTS), chunksize=16)
+ 
+                for i, (current, currentErrors) in enumerate(results):
+                      if leastErrors > currentErrors:
+                            best = current
+                            leastErrors = currentErrors
+ 
+                      if leastErrors == 0:
+                            break          
+ 
+                      now = time.time()
+                      if now - lastPrint >= PRINT_EVERY:
+                            done = i + 1
+                            elapsed = now - startTime
+                            print(f"[{elapsed:6.0f}s] {done}/{MAX_RESTARTS} restarts done "
+                                  f"({100 * done / MAX_RESTARTS:.2f}%) | "
+                                  f"{done / elapsed:.1f} restarts/s on {nbWorkers} processes | "
+                                  f"leastError: {leastErrors}")
+                            lastPrint = now
+ 
+          print(f"finished after {i + 1} restarts in {time.time() - startTime:.1f}s, leastError: {leastErrors}")
+          return best
+
+    else:
+         for i in range(MAX_RESTARTS):  
+            global initial
+            initial = puzzle
+      
+            isEnding = False
+            
+            #remplir aleatoirement
+            current = random_fill()
+      
+            currentErrors = errors_counter(current)
+      
+            while not isEnding: 
+                  neighbor, errors = climb(current)
+      
+                  if neighbor is None or errors >= currentErrors:
+                        isEnding = True
+                  
+                  else:    
+                        current = neighbor
+                        currentErrors = errors
+      
+            if leastErrors > currentErrors:
+                  best = current
+                  leastErrors = currentErrors
+      
+            if leastErrors == 0:
+                  #break
+                  return best
+      
+            if i % 100 == 0:     
+                  print("nb climb: "+str(i))
+                  print("leastError: " + str(leastErrors))
+
+
+
+         return best
+
+def climbing_hill_logic(puzzle, best, leastErrors, i):
       global initial
       initial = puzzle
 
@@ -54,7 +150,7 @@ def climbing_hill(puzzle):
             neighbor, errors = climb(current)
 
             if neighbor is None or errors >= currentErrors:
-                 isEnding = True
+                  isEnding = True
             
             else:    
                   current = neighbor
@@ -72,7 +168,7 @@ def climbing_hill(puzzle):
             print("nb climb: "+str(i))
             print("leastError: " + str(leastErrors))
 
-    return best
+      return best
 
 
 
