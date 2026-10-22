@@ -6,7 +6,7 @@ import search
 
 PUZZLE_DIR = "sudoku"    
 RESULT_DIR = "resultats"
-NB_RUNS = 10
+NB_RUNS = 1
 
 ALGORITHMS = [
     #("genetique", search.genetic, 1),
@@ -14,12 +14,19 @@ ALGORITHMS = [
 ]
 
 
-def write_run(file_path, history, nb_iterations, execution_time, step):
+def write_run_history(file_path, history, nb_iterations, execution_time, step):
    
     with open(file_path, "w", encoding="utf-8") as f:
         for iteration, errors in enumerate(history, start=1):
             if iteration % step == 0 or iteration == len(history):
                 f.write(f"{iteration}\t{errors}\n")
+        f.write(f"{nb_iterations}\n")
+        f.write(f"{execution_time}\n")
+
+def write_run(file_path,nb_iterations, execution_time, solution):
+   
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(f"{solution}\n")
         f.write(f"{nb_iterations}\n")
         f.write(f"{execution_time}\n")
 
@@ -60,10 +67,10 @@ if __name__ == "__main__":
         for name, algo, step in ALGORITHMS:
             nb_found = 0
             for run in range(1, NB_RUNS + 1):
-                solution, execution_time, history, nb_iterations = algo(puzzle)
+                solution, execution_time, nb_iterations = algo(puzzle)
 
                 file_path = os.path.join(output_dir, f"{name}_essai{run}.csv")
-                write_run(file_path, history, nb_iterations, execution_time, step)
+                write_run(file_path, nb_iterations, execution_time, solution)
 
                 found = solution is not None
                 nb_found += found

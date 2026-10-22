@@ -64,7 +64,7 @@ def climbing_hill(puzzle, isParallel=True):
     leastErrors = 1_000_000
 
     MAX_THREAD = 100
-
+    start = time.time_ns()
 
     
     if (isParallel):
@@ -93,7 +93,8 @@ def climbing_hill(puzzle, isParallel=True):
                             lastPrint = now
  
           print(f"finished after {i + 1} restarts in {time.time() - startTime:.1f}s, leastError: {leastErrors}")
-          return best
+          end = (time.time_ns() - start) / 1_000_000_000
+          return best, end, i + 1
 
     else:
          for i in range(MAX_RESTARTS):  
@@ -123,7 +124,8 @@ def climbing_hill(puzzle, isParallel=True):
       
             if leastErrors == 0:
                   #break
-                  return best
+                  end = (time.time_ns() - start) / 1_000_000_000
+                  return best, end, i + 1
       
             if i % 100 == 0:     
                   print("nb climb: "+str(i))
@@ -131,7 +133,8 @@ def climbing_hill(puzzle, isParallel=True):
 
 
 
-         return best
+         end = (time.time_ns() - start) / 1_000_000_000
+         return best, end, i + 1
 
 def climbing_hill_logic(puzzle, best, leastErrors, i):
       global initial
