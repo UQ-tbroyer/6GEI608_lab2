@@ -9,7 +9,7 @@ RESULT_DIR = "resultats"
 NB_RUNS = 1
 
 ALGORITHMS = [
-    #("genetique", search.genetic, 1),
+    ("genetique", search.genetic, 1),
     ("hill_climbing", search.climbing_hill, 1000),
 ]
 
@@ -48,7 +48,6 @@ if __name__ == "__main__":
             puzzles.append((name, puzzle_file, df, index))
 
     input_dir = os.path.join(PUZZLE_DIR, "inputs")
-    os.makedirs(input_dir, exist_ok=True)
 
     for puzzle_name, puzzle_file, df, index in puzzles:
         print(f"\n===== {puzzle_name} ({puzzle_file}, ligne {index + 1}) =====")
@@ -59,7 +58,6 @@ if __name__ == "__main__":
         difficulty = df["Difficulty"].iloc[index] if "Difficulty" in df.columns else "?"
         print(f"Difficulté : {difficulty}")
 
-        df.iloc[[index]].to_csv(os.path.join(input_dir, f"{puzzle_name}.csv"), index=False)
 
         output_dir = os.path.join(RESULT_DIR, puzzle_name)
         os.makedirs(output_dir, exist_ok=True)
@@ -67,7 +65,9 @@ if __name__ == "__main__":
         for name, algo, step in ALGORITHMS:
             nb_found = 0
             for run in range(1, NB_RUNS + 1):
-                solution, execution_time, nb_iterations = algo(puzzle)
+
+
+                solution, execution_time, history, nb_iterations = algo(puzzle)
 
                 file_path = os.path.join(output_dir, f"{name}_essai{run}.csv")
                 write_run(file_path, nb_iterations, execution_time, solution)

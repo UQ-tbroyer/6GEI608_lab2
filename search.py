@@ -94,7 +94,7 @@ def climbing_hill(puzzle, isParallel=True):
  
           print(f"finished after {i + 1} restarts in {time.time() - startTime:.1f}s, leastError: {leastErrors}")
           end = (time.time_ns() - start) / 1_000_000_000
-          return best, end, i + 1
+          return best, end, None, i + 1
 
     else:
          for i in range(MAX_RESTARTS):  
