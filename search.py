@@ -4,7 +4,6 @@ import time
 from multiprocessing import Pool, cpu_count
 from data import *
 
-#1147688
 MAX_RESTARTS=10_000_000
 
 def random_fill():
@@ -31,8 +30,6 @@ def random_fill():
 
       current.append(new_line)
 
-
-    #print(current)
     return current
 
 
@@ -123,7 +120,6 @@ def climbing_hill(puzzle, isParallel=True):
                   leastErrors = currentErrors
       
             if leastErrors == 0:
-                  #break
                   end = (time.time_ns() - start) / 1_000_000_000
                   return best, end, i + 1
       
@@ -162,7 +158,6 @@ def climbing_hill_logic(puzzle, best, leastErrors, i):
             leastErrors = currentErrors
 
       if leastErrors == 0:
-            #break
             return best
 
       if i % 100 == 0:     
@@ -209,7 +204,6 @@ def climb(passedPuzzle):
                         passedPuzzle[i][col1], passedPuzzle[i][col2] = passedPuzzle[i][col2], passedPuzzle[i][col1]      
       
 
-      #print("errors " + str(leastErrors))
       return bestState, leastErrors
 
 def find_duplicates(section):
@@ -252,25 +246,11 @@ def verify(sudoku):
 
     if(total != 243):
           return False
-
-    else:
-          pass
                 
     return True
 
 
-# --------------------------------------------------------------------------
 # Algorithme génétique
-# --------------------------------------------------------------------------
-# Individu    : une grille 9x9 où chaque ligne contient les chiffres 1 à 9
-#               (cases données fixes, cases vides remplies avec les chiffres manquants).
-# Fitness     : errors_counter -> nombre de conflits (à minimiser, 0 = solution).
-# Sélection   : tournoi de taille 3.
-# Croisement  : uniforme par ligne (chaque ligne vient du parent 1 ou du parent 2).
-# Mutation    : échange de deux cases modifiables dans une même ligne.
-# Élitisme    : les 2 meilleurs individus passent à la génération suivante.
-# Redémarrage : si aucune amélioration pendant 60 générations, nouvelle population.
-
 def ga_individual(puzzle):
     individual = []
     for line in puzzle:
@@ -299,33 +279,12 @@ def ga_mutate(individual, free, rate):
             c1, c2 = random.sample(free[r], 2)
             individual[r][c1], individual[r][c2] = individual[r][c2], individual[r][c1]
 
-def fill_singles(puzzle):
-    """Remplit les cases qui n'ont qu'une seule valeur possible, jusqu'à ce qu'il n'y en ait plus."""
-    grid = [list(row) for row in puzzle]
-    changed = True
-    while changed:
-        changed = False
-        for i in range(9):
-            for j in range(9):
-                if grid[i][j] != 0:
-                    continue
-                used = set(grid[i]) | {grid[k][j] for k in range(9)}
-                bi, bj = (i // 3) * 3, (j // 3) * 3
-                used |= {grid[bi + a][bj + b] for a in range(3) for b in range(3)}
-                candidates = [v for v in range(1, 10) if v not in used]
-                if len(candidates) == 1:
-                    grid[i][j] = candidates[0]
-                    changed = True
-    return grid
 
 def genetic(puzzle, population_size=150, max_generations=5_000, elite_size=2,
             tournament_size=3, crossover_rate=0.9, mutation_rate=0.15, stagnation_limit=60):
-    """
-    Retourne (solution ou None, temps d'exécution en ns, historique, nombre de générations).
-    historique[k] = meilleure fitness (nombre de conflits) à la génération k+1.
-    """
+
     global initial
-    initial = puzzle                      # utilisé par errors_counter
+    initial = puzzle                   
 
     free = [[j for j in range(9) if puzzle[i][j] == 0] for i in range(9)]
 
@@ -356,7 +315,6 @@ def genetic(puzzle, population_size=150, max_generations=5_000, elite_size=2,
             stagnation += 1
 
         if stagnation >= stagnation_limit:
-            # population bloquée dans un minimum local : on repart de zéro
             population = [ga_individual(puzzle) for _ in range(population_size)]
             best_ever, stagnation = None, 0
             continue

@@ -79,7 +79,4 @@ if __name__ == "__main__":
 
             summary.append((puzzle_name, difficulty, name, nb_found))
 
-    print("\n===== Résumé =====")
-    for puzzle_name, difficulty, name, nb_found in summary:
-        print(f"{puzzle_name:<20} {str(difficulty):<12} {name:<14} {nb_found}/{NB_RUNS} résolus")
 

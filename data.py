@@ -3,9 +3,6 @@ import pandas as pd
 
 
 def extract_csv(outpufile="sudoku/exemple.csv"):
-
-    # index_col=False : évite que pandas prenne la 1re colonne comme index
-    # quand les lignes se terminent par une virgule (export qqwing)
     df = pd.read_csv(outpufile, index_col=False)
 
     print(df.to_string())
@@ -14,16 +11,9 @@ def extract_csv(outpufile="sudoku/exemple.csv"):
 
 
 def extract_puzzle(dataframe, index=0):
-    """Retourne le puzzle de la ligne `index` du fichier (0 = premier puzzle)."""
-    if dataframe.empty:
-        raise ValueError("le fichier ne contient aucune ligne de puzzle")
 
     puzzle_raw = str(dataframe["Puzzle"].iloc[index]).strip()
 
-    if len(puzzle_raw) != 81:
-        raise ValueError(f"le puzzle doit contenir 81 caractères, il en contient {len(puzzle_raw)}")
-
-    #print(puzzle_raw)
 
     puzzle_processed = []
 
@@ -31,8 +21,6 @@ def extract_puzzle(dataframe, index=0):
         puzzle_processed.append([])
         for j in range(9):
             symbol = puzzle_raw[i * 9 + j]
-            #print(symbol)
-            #print(type(symbol))
 
             if symbol != '.':
                 puzzle_processed[i].append(int(symbol))
@@ -46,16 +34,8 @@ def extract_puzzle(dataframe, index=0):
 
 
 def extract_multiple_puzzle(dataframe, index=0):
-    
-    if dataframe.empty:
-        raise ValueError("le fichier ne contient aucune ligne de puzzle")
 
     puzzle_raw = str(dataframe["Puzzle"].iloc[index]).strip()
-
-    if len(puzzle_raw) != 81:
-        raise ValueError(f"le puzzle doit contenir 81 caractères, il en contient {len(puzzle_raw)}")
-
-    #print(puzzle_raw)
 
     puzzle_processed = []
 
@@ -63,9 +43,7 @@ def extract_multiple_puzzle(dataframe, index=0):
         puzzle_processed.append([])
         for j in range(9):
             symbol = puzzle_raw[i * 9 + j]
-            #print(symbol)
-            #print(type(symbol))
-
+            
             if symbol != '.':
                 puzzle_processed[i].append(int(symbol))
 
