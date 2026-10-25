@@ -102,7 +102,7 @@ def climbing_hill(puzzle, isParallel=True):
  
           print(f"finished after {i + 1} restarts in {time.time() - startTime:.1f}s, leastError: {leastErrors}")
           end = (time.time_ns() - start) / 1_000_000_000
-          return best, end, None, i + 1
+          return best, end, i + 1
 
     else:
          for i in range(MAX_RESTARTS):  
@@ -166,13 +166,15 @@ def climbing_hill_logic(puzzle, best, leastErrors, i):
             neighbor, errors = climb(current)
 
             if neighbor is None or errors > currentErrors:
-                  isEnding = True                 # minimum local
+                  isEnding = True          
+
             elif errors == currentErrors:
-                  sideways += 1                   # plateau : mouvement latéral
+                  sideways += 1                  
                   if sideways > MAX_SIDEWAYS:
                         isEnding = True
                   else:
                         current = neighbor
+                        
             else:    
                   current = neighbor    
                   currentErrors = errors
@@ -311,7 +313,7 @@ def ga_mutate(individual, free, rate):
             individual[r][c1], individual[r][c2] = individual[r][c2], individual[r][c1]
 
 
-def genetic(puzzle, population_size=150, max_generations=5_000, elite_size=2,
+def genetic(puzzle, population_size=150, max_generations=50_000_000, elite_size=2,
             tournament_size=3, crossover_rate=0.9, mutation_rate=0.15, stagnation_limit=60):
 
     global initial
@@ -374,5 +376,8 @@ if __name__ == "__main__":
       print(climbing_hill(pp))
       print("----------------------")
       print(pp)
+
+      print(genetic(pp))
       end = time.time_ns() - start
       print(end / 1_000_000_000)
+
