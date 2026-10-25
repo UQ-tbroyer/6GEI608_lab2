@@ -239,7 +239,7 @@ def genetic(puzzle, population_size=150, max_generations=5_000, elite_size=2,
     start_time = time.time_ns()
     population = [ga_individual(puzzle) for _ in range(population_size)]
 
-    while generation < max_generations:
+    while max_generations is None or generation < max_generations:
         fitnesses = [errors_counter(ind) for ind in population]
         order = sorted(range(population_size), key=lambda k: fitnesses[k])
         best_fitness = fitnesses[order[0]]
