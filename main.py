@@ -53,7 +53,7 @@ if __name__ == "__main__":
     for puzzle_name, puzzle_file, df, index in puzzles:
         print(f"\n===== {puzzle_name} ({puzzle_file}, ligne {index + 1}) =====")
 
-        puzzle = extract_multiple_puzzle(df, index)
+        puzzle = extract_puzzle(df, index)
        
 
         difficulty = df["Difficulty"].iloc[index] if "Difficulty" in df.columns else "?"
