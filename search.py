@@ -5,6 +5,7 @@ from multiprocessing import Pool, cpu_count
 from data import *
 
 MAX_RESTARTS=10_000_000
+MAX_SIDEWAYS=100   
 
 def random_fill():
     current = []
@@ -44,13 +45,23 @@ def one_restart(_):
       current = random_fill()
       currentErrors = errors_counter(current)
       isEnding = False
+      sideways = 0
       while not isEnding:
             neighbor, errors = climb(current)
-            if neighbor is None or errors >= currentErrors:
-                  isEnding = True
+            if neighbor is None or errors > currentErrors:
+                  isEnding = True                 
+            elif errors == currentErrors:
+                  sideways += 1                  
+                  if sideways > MAX_SIDEWAYS:
+                        isEnding = True
+                  else:
+                        current = neighbor
             else:
-                  current = neighbor
+                  current = neighbor          
                   currentErrors = errors
+                  sideways = 0
+            if currentErrors == 0:
+                  isEnding = True
       return current, currentErrors
 
 
@@ -100,20 +111,28 @@ def climbing_hill(puzzle, isParallel=True):
       
             isEnding = False
             
-            #remplir aleatoirement
             current = random_fill()
       
             currentErrors = errors_counter(current)
+            sideways = 0
       
             while not isEnding: 
                   neighbor, errors = climb(current)
       
-                  if neighbor is None or errors >= currentErrors:
-                        isEnding = True
-                  
+                  if neighbor is None or errors > currentErrors:
+                        isEnding = True                 
+                  elif errors == currentErrors:
+                        sideways += 1                  
+                        if sideways > MAX_SIDEWAYS:
+                              isEnding = True
+                        else:
+                              current = neighbor
                   else:    
-                        current = neighbor
+                        current = neighbor            
                         currentErrors = errors
+                        sideways = 0
+                  if currentErrors == 0:
+                        isEnding = True
       
             if leastErrors > currentErrors:
                   best = current
@@ -138,20 +157,28 @@ def climbing_hill_logic(puzzle, best, leastErrors, i):
 
       isEnding = False
       
-      #remplir aleatoirement
       current = random_fill()
 
       currentErrors = errors_counter(current)
+      sideways = 0
 
       while not isEnding: 
             neighbor, errors = climb(current)
 
-            if neighbor is None or errors >= currentErrors:
-                  isEnding = True
-            
+            if neighbor is None or errors > currentErrors:
+                  isEnding = True                 # minimum local
+            elif errors == currentErrors:
+                  sideways += 1                   # plateau : mouvement latéral
+                  if sideways > MAX_SIDEWAYS:
+                        isEnding = True
+                  else:
+                        current = neighbor
             else:    
-                  current = neighbor
+                  current = neighbor    
                   currentErrors = errors
+                  sideways = 0
+            if currentErrors == 0:
+                  isEnding = True
 
       if leastErrors > currentErrors:
             best = current
@@ -171,11 +198,9 @@ def climbing_hill_logic(puzzle, best, leastErrors, i):
 def climb(passedPuzzle):
 
       leastErrors = 1_000_000
-      bestState  = [[0 for _ in range(9)] for _ in range(9)]
-      errors = errors_counter(passedPuzzle)
+      bestMoves = []       
 
       for i in range(9):
-            #column a remplir
             free = [] 
 
             for j in range(9):
@@ -198,11 +223,20 @@ def climb(passedPuzzle):
 
                         if errors < leastErrors:
                               leastErrors = errors
-                              bestState = [[passedPuzzle[a][b] for b in range(9)] for a in range(9)]
+                              bestMoves = [(i, col1, col2)]
+                        elif errors == leastErrors:
+                              bestMoves.append((i, col1, col2))
 
                         #reinitialise
                         passedPuzzle[i][col1], passedPuzzle[i][col2] = passedPuzzle[i][col2], passedPuzzle[i][col1]      
       
+
+      if not bestMoves:
+            return None, leastErrors
+
+      row, col1, col2 = random.choice(bestMoves)
+      bestState = [list(r) for r in passedPuzzle]
+      bestState[row][col1], bestState[row][col2] = bestState[row][col2], bestState[row][col1]
 
       return bestState, leastErrors
 
@@ -234,9 +268,6 @@ def errors_counter(sudoku):
             errorsNumber += find_duplicates(section3x3[i])
 
       return errorsNumber
-
-
-
 
 def verify(sudoku):
     total = 0

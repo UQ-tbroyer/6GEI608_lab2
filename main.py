@@ -1,12 +1,27 @@
 import glob
 import os
 
-from data import *
+from data import extract_csv, extract_puzzle
 import search
 
-PUZZLE_DIR = "sudoku"    
+PUZZLE_DIR = "sudoku"
 RESULT_DIR = "resultats"
 NB_RUNS = 1
+
+
+def run_hill_climbing(puzzle):
+    """climbing_hill retourne (meilleure grille, temps en s, nb de redémarrages)."""
+    best, seconds, nb_restarts = search.climbing_hill(puzzle)
+    search.initial = puzzle                       # utilisé par errors_counter
+    solved = best is not None and search.errors_counter(best) == 0
+    return (best if solved else None), int(seconds * 1e9), nb_restarts
+
+
+def run_genetic(puzzle):
+    """genetic retourne (solution ou None, temps en ns, historique, nb de générations)."""
+    solution, execution_time, history, nb_generations = search.genetic(puzzle)
+    return solution, execution_time, nb_generations
+
 
 ALGORITHMS = [
     ("genetique", search.genetic, 1),
@@ -14,34 +29,27 @@ ALGORITHMS = [
 ]
 
 
-def write_run_history(file_path, history, nb_iterations, execution_time, step):
-   
+def write_run(file_path, nb_iterations, execution_time, solution):
+    """Grille solution (9 lignes), puis nombre d'itérations, puis temps (ns)."""
     with open(file_path, "w", encoding="utf-8") as f:
-        for iteration, errors in enumerate(history, start=1):
-            if iteration % step == 0 or iteration == len(history):
-                f.write(f"{iteration}\t{errors}\n")
-        f.write(f"{nb_iterations}\n")
-        f.write(f"{execution_time}\n")
-
-def write_run(file_path,nb_iterations, execution_time, solution):
-   
-    with open(file_path, "w", encoding="utf-8") as f:
-        f.write(f"{solution}\n")
+        if solution is not None:
+            for row in solution:
+                f.write(" ".join(str(v) for v in row) + "\n")
+        else:
+            f.write("aucune solution\n")
         f.write(f"{nb_iterations}\n")
         f.write(f"{execution_time}\n")
 
 
 if __name__ == "__main__":
     puzzle_files = sorted(glob.glob(os.path.join(PUZZLE_DIR, "*.csv")))
+    if not puzzle_files:
+        raise SystemExit(f"Aucun fichier .csv trouvé dans '{PUZZLE_DIR}'")
 
     summary = []
-  
-
     puzzles = []
     for puzzle_file in puzzle_files:
-       
         df = extract_csv(puzzle_file)
-
         base_name = os.path.splitext(os.path.basename(puzzle_file))[0]
         for index in range(len(df)):
             name = base_name if len(df) == 1 else f"{base_name}_{index + 1:02d}"
@@ -52,9 +60,7 @@ if __name__ == "__main__":
     for puzzle_name, puzzle_file, df, index in puzzles:
         print(f"\n===== {puzzle_name} ({puzzle_file}, ligne {index + 1}) =====")
 
-        puzzle = extract_multiple_puzzle(df, index)
-       
-
+        puzzle = extract_puzzle(df, index)
         difficulty = df["Difficulty"].iloc[index] if "Difficulty" in df.columns else "?"
         print(f"Difficulté : {difficulty}")
 
@@ -62,7 +68,7 @@ if __name__ == "__main__":
         output_dir = os.path.join(RESULT_DIR, puzzle_name)
         os.makedirs(output_dir, exist_ok=True)
 
-        for name, algo, step in ALGORITHMS:
+        for name, algo in ALGORITHMS:
             nb_found = 0
             for run in range(1, NB_RUNS + 1):
 
